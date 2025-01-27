@@ -1,5 +1,20 @@
 local dap = require('dap')
 
+-- 获取操作系统
+local OS = vim.loop.os_uname().sysname
+
+-- 根据操作系统判断配置目录
+local config_dir
+if OS == "Linux" then
+    config_dir = vim.fn.expand("~/.config/nvim")  -- Linux 下的配置目录
+elseif OS == "Windows" then
+    config_dir = vim.fn.expand("~\\AppData\\Local\\nvim")  -- Windows 下的配置目录
+else
+    vim.notify("不支持的操作系统: " .. OS, vim.log.levels.ERROR)
+    return
+end
+
+
 -- 每次启动时自动更新配置
 local config_dir = vim.fn.stdpath('config')
 
