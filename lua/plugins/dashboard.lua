@@ -31,6 +31,15 @@ return {
             extensions = {},
         }
 
+        local function generate_unique_filename(base_name)
+            local i = 1
+            local filename = base_name .. ".cpp"
+            while vim.fn.filereadable(filename) == 1 do
+                filename = base_name .. i .. ".cpp"
+                i = i + 1
+            end
+            return filename
+        end
         require('dashboard').setup({
             theme = "doom", -- 或 'hyper'
             config = {
@@ -50,12 +59,6 @@ return {
                         action = "Telescope oldfiles"
                     },
                     {
-                        icon = " ",
-                        desc = "Bookmarks           ",
-                        key = "m",
-                        action = "Telescope marks"
-                    },
-                    {
                         icon = " ",
                         desc = "Update Plugins      ",
                         key = "u",
@@ -67,7 +70,17 @@ return {
                         key = "c",
                         action = "edit " .. config_path  -- 根据系统路径设置
                     },
+                    {
+                        icon = "  ",
+                        desc = "New file                                ",
+                        action = function()
+                          local filename = generate_unique_filename("tmp")
+                          vim.cmd("e " .. filename)
+                        end,
+                        key = "e",
+                    }
                 },
+ 
                 footer = {"Maomaochong", "~"},
             },
         })
