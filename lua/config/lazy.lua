@@ -33,3 +33,5 @@ require("lazy").setup({
   -- automatically check for plugin updates
   checker = { enabled = true },
 })
+require 'lspconfig'.clangd.setup {} -- 启用自动补全，一定要加上啊
+require 'lspconfig'.lua_ls.setup {}

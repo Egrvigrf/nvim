@@ -5,7 +5,9 @@ return {
        require("mason").setup()
        require("mason-lspconfig").setup {
            ensure_installed = { "lua_ls", "clangd" }, -- 添加你需要的 LSP 服务器, "pyright"
+
        }
+
          -- 配置 LSP 诊断图标
         -- 配置 LSP 诊断图标
         --vim.fn.sign_define("DiagnosticSignError", {text = "", texthl = "DiagnosticSignError"})
@@ -26,4 +28,5 @@ return {
            default = true;
        }
    end,
+
 }

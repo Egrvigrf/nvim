@@ -6,7 +6,8 @@ return {
         --  "prettier",        -- JavaScript, TypeScript, CSS, etc.
         --  "black",           -- Python
         --  "stylua",          -- Lua
-        --  "clang-format",    -- C, C++
+            "clang-format",    -- C, C++
+            "clangd",
         },
         auto_update = false,
         run_on_start = true,

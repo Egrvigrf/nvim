@@ -19,6 +19,8 @@ local options = {
 	smartcase = true,
 	splitright = true,
 	splitbelow = true,
+	swapfile = false, -- 禁用交换文件
+	backup = false,   -- 禁用文件备份
 }
 -- 用一个循环来设置基本参数
 for key, value in pairs(options) do

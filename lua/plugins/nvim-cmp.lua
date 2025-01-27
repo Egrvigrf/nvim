@@ -63,16 +63,18 @@ return {
                 ['<S-Tab>'] = cmp.mapping(shift_tab, { 'i', 's' }),
             }),
             sources = cmp.config.sources({
-                { name = 'nvim_lsp' },
+                
                 { name = 'luasnip' }, -- 添加 LuaSnip 作为补全源
+                { name = 'buffer' },
+                { name = 'nvim_lsp' },
                 { name = 'path' },
             }, {
-                { name = 'buffer' },
+                
             }),
             completion = {
                 keyword_length = 2,  -- 触发补全的最少字符数
                 completeopt = 'menu,menuone,noinsert',  -- Vim 的补全选项
-                max_item_count = 10,  -- 补全列表的最大项数
+                max_item_count = 5,  -- 补全列表的最大项数
             }
         })
 
