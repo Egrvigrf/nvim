@@ -1,39 +1,21 @@
 #!/bin/bash
 
-# 检测操作系统
-OS="$(uname)"
-
 # 设置默认的配置目录
-NVIM_CONFIG_DIR=""
-
-if [ "$OS" == "Linux" ]; then
-    # Linux 系统
-    NVIM_CONFIG_DIR="$HOME/.config/nvim"
-elif [[ "$OS" == MINGW64_NT* || "$OS" == MSYS* ]]; then
-    # Windows 系统（Git Bash 或者 WSL）
-    NVIM_CONFIG_DIR="$HOME/AppData/Local/nvim"
-else
-    echo "不支持的操作系统: $OS"
-    exit 1
-fi
+NVIM_CONFIG_DIR="$HOME/.config/nvim"
 
 # 仓库地址
 GIT_REPO_URL="https://github.com/Egrvigrf/nvim.git"
 
-# 如果配置目录存在，强制删除并重新克隆仓库
+# 如果配置目录不存在，或者不是 Git 仓库，则删除并重新克隆仓库
 if [ -d "$NVIM_CONFIG_DIR" ]; then
-    echo "$NVIM_CONFIG_DIR 目录存在，正在删除并重新克隆..."
-    # 确认删除操作
-    read -p "确定要删除 $NVIM_CONFIG_DIR 吗? (y/n): " confirm
-    if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+    if [ ! -d "$NVIM_CONFIG_DIR/.git" ]; then
+        echo "$NVIM_CONFIG_DIR 目录存在，但不是 Git 仓库，正在删除并重新克隆..."
         rm -rf "$NVIM_CONFIG_DIR"  # 删除该目录
-        echo "目录已删除"
     else
-        echo "操作取消"
-        exit 1
+        echo "配置目录已存在且是 Git 仓库，跳过删除。"
     fi
 else
-    echo "配置目录不存在，准备克隆配置仓库..."
+    echo "配置目录不存在，正在克隆配置仓库..."
 fi
 
 # 克隆仓库
