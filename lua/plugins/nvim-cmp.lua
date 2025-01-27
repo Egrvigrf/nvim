@@ -65,10 +65,11 @@ return {
             sources = cmp.config.sources({
                 
                 { name = 'luasnip' }, -- 添加 LuaSnip 作为补全源
+                { name = 'buffer' },
                 { name = 'nvim_lsp' },
                 { name = 'path' },
             }, {
-                { name = 'buffer' },
+                
             }),
             completion = {
                 keyword_length = 2,  -- 触发补全的最少字符数
