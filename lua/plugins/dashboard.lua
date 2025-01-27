@@ -7,11 +7,10 @@ local script_path
 if is_windows then
     -- Windows 系统的路径
     config_path = "$LOCALAPPDATA\\nvim\\init.lua"
-    script_path = "$LOCALAPPDATA\\nvim\\update_config.sh"  -- 脚本路径与 init.lua 同级
 else
     -- 非 Windows 系统的路径（例如 Linux）
     config_path = "~/.config/nvim/init.lua"
-    script_path = "~/.config/nvim/update_config.sh"  -- 脚本路径与 init.lua 同级
+
 end
 
 return {
@@ -31,19 +30,6 @@ return {
         telescope.setup {
             extensions = {},
         }
-
-        -- 执行自定义的 update_config.sh 脚本
-        local function update_config()
-            -- 根据操作系统选择路径
-            if is_windows then
-                -- Windows 系统
-                vim.fn.system('bash "' .. vim.fn.expand(script_path) .. '"')
-            else
-                -- Linux 或 macOS 系统
-                vim.fn.system('bash ' .. vim.fn.expand(script_path))
-            end
-            print("配置文件已更新！")
-        end
 
         require('dashboard').setup({
             theme = "doom", -- 或 'hyper'
@@ -80,12 +66,6 @@ return {
                         desc = "Open Config         ",
                         key = "c",
                         action = "edit " .. config_path  -- 根据系统路径设置
-                    },
-                    {
-                        icon = "⚙️ ",
-                        desc = "Update Config       ",
-                        key = "P",
-                        action = update_config  -- 执行脚本更新配置
                     },
                 },
                 footer = {"Maomaochong", "~"},

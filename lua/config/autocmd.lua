@@ -89,10 +89,3 @@ vim.api.nvim_create_autocmd("InsertLeave", {
     end,
 })
 
--- 设置自动命令：每次打开 .cpp 文件时执行 update_config.sh 脚本
-vim.cmd([[
-    augroup UpdateConfigOnCpp
-        autocmd!
-        autocmd BufRead,BufNewFile *.cpp lua update_config()
-    augroup END
-]])
