@@ -34,34 +34,37 @@ function CompileAndRunLinux()
     -- 保存当前文件
     vim.cmd("write")
 
-    -- 更改当前工作目录为文件所在目录
-    vim.cmd("lcd %:p:h")
+    -- 获取当前文件的绝对路径
+    local file_path = vim.fn.expand('%:p')  -- 获取文件的绝对路径
+    local dir_path = vim.fn.expand('%:p:h')  -- 获取文件所在目录
 
-    -- 获取文件的完整路径
-    local file_path = vim.fn.expand('%:p')
-    local file_name_without_ext = vim.fn.expand('%:p:r')
+    -- 更改当前工作目录为文件所在目录
+    vim.cmd("lcd " .. dir_path)
 
     -- 构建编译命令
-    local compile_cmd = string.format("g++ -std=c++20 \"%s\" -o \"%s\"", file_path, file_name_without_ext)
+    local compile_cmd = string.format("g++ -std=c++20 \"%s\" -o \"%s\"", file_path, vim.fn.expand('%:p:r'))
+    -- 构建运行命令，确保路径格式正确
+    local run_cmd = string.format("./%s", vim.fn.expand('%:p:r'):match("([^/]+)$"))  -- 获取文件名部分
 
-    -- 构建运行命令
-    local run_cmd = string.format("./%s", file_name_without_ext)
+    -- 为生成的可执行文件添加执行权限
+    local chmod_cmd = string.format("chmod +x \"%s\"", vim.fn.expand('%:p:r'))
+    vim.fn.system(chmod_cmd)
 
     -- 尝试编译
     local compile_result = vim.fn.system(compile_cmd)
 
     -- 判断编译是否成功
     if vim.v.shell_error == 0 then
-        -- 编译成功，给生成的可执行文件添加执行权限
-        vim.fn.system(string.format("chmod +x \"%s\"", file_name_without_ext))
-
-        -- 打开终端运行程序
+        -- 编译成功，打开终端运行程序
         vim.cmd(string.format("vsplit | term bash -c \"%s\"", run_cmd))
     else
         -- 编译失败，显示错误信息并不打开新窗口
         vim.notify("Compilation failed", "error", {title = "Error", timeout = 300})
     end
 end
+
+
+
 
 
 
