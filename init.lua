@@ -5,6 +5,7 @@ require("config.lazy")
 require("snippets.set")
 --require 'lspconfig'.pyright.setup {}
 require 'lspconfig'.clangd.setup {}
+require 'lspconfig'.clang-format.setup {}
 require 'lspconfig'.lua_ls.setup {}
 
 

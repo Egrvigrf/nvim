@@ -3,7 +3,8 @@
 - 使用lazy插件管理器
 - mason来管理代码补全
 ## 可能出现的问题
-- lualine和telescope的符号显示乱码，需要设置支持图形字符的终端字体（比如Nerd fonts）  
+- lualine和telescope的符号显示乱码，需要设置支持图形字符的终端字体（比如Nerd fonts）
+[Nerd_font](https://www.nerdfonts.com/)  
   
 windows 默认配置文件位置$LOCALAPPDATA\nvim  
 启动nvim时先执行init.lua文件  
@@ -31,4 +32,8 @@ CompileFlags:
 mark a  标记名为a
 :marks 查看所有标签
 :delmarks a-zA-Z0-9!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
+
+## 其他问题
+windows cmd 没有添加到环境变量，手动添加C:\Windows\System32即可
+linux clangd-format 如果用:Masoninstall 安装失败，可以手动安装,可能是没有国内源
 
