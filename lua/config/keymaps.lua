@@ -5,54 +5,55 @@ vim.g.mapleader = " "
 -- Clear search highlights
 k.set("n", "<leader>nh", ":nohl<CR>")
 
--- Compile and Run (Windows)
 -- 创建一个函数来编译并运行 C++ 文件（Windows 版本）
 function CompileAndRun()
     -- 保存当前文件
     vim.cmd("write")
 
-    -- 显示通知
-    vim.notify("Compile and Run...", "info", {title = "Running"})
-
-    -- 更改当前工作目录为文件所在目录
     vim.cmd("lcd %:p:h")
 
-    -- 构建编译的命令
-    local compile_cmd = string.format("g++ \"%s\" -o \"%s\"", vim.fn.expand('%:p'), vim.fn.expand('%:p:r.exe'))
-    local run_cmd = string.format("\"%s\"", vim.fn.expand('%:p:r.exe'))
+    local compile_cmd = string.format("g++ -std=c++20 \"%s\" -o \"%s.exe\"", vim.fn.expand('%:p'), vim.fn.expand('%:p:r'))
+    local run_cmd = string.format("\"%s.exe\"", vim.fn.expand('%:p:r'))
 
     -- 尝试编译
     local compile_result = vim.fn.system(compile_cmd)
 
     -- 判断编译是否成功
     if vim.v.shell_error == 0 then
-        -- 编译成功，竖直分割窗口并打开终端，运行当前文件
-        vim.cmd(string.format("vsplit | term cmd /c \"%s && echo Compilation successful && %s\"", compile_cmd, run_cmd))
+        -- 打开终端运行程序
+        vim.cmd(string.format("vsplit | term cmd /c \"%s\"", run_cmd))
     else
-        -- 编译失败，显示通知
-        vim.notify("Compilation failed", "error", {title = "Error"})
+        -- 编译失败，显示错误信息并不打开新窗口
+        vim.notify("Compilation failed", "error", {title = "Error", timeout = 300})
     end
 end
 
--- Compile and Run (Linux)
+
 -- 创建一个函数来编译并运行 C++ 文件（Linux 版本）
 function CompileAndRunLinux()
     -- 保存当前文件
     vim.cmd("write")
 
-    -- 显示通知
-    vim.notify("Compile and Run...", "info", {title = "Running"})
-
     -- 更改当前工作目录为文件所在目录
     vim.cmd("lcd %:p:h")
 
-    -- 构建编译和运行的命令
-    local compile_cmd = string.format("g++ \"%s\" -o \"%s\"", vim.fn.expand('%:p'), vim.fn.expand('%:p:r'))
+    -- 构建编译和运行命令
+    local compile_cmd = string.format("g++ -std=c++20 \"%s\" -o \"%s\"", vim.fn.expand('%:p'), vim.fn.expand('%:p:r'))
     local run_cmd = string.format("./%s", vim.fn.expand('%:p:r'))
 
-    -- 水平分割窗口并打开终端，编译并运行当前文件
-    vim.cmd(string.format("botright split | term bash -c \"echo Compiling: %s && %s && echo Compilation successful && %s && echo Run successful\"", compile_cmd, compile_cmd, run_cmd))
+    -- 尝试编译
+    local compile_result = vim.fn.system(compile_cmd)
+
+    -- 判断编译是否成功
+    if vim.v.shell_error == 0 then
+        -- 打开终端运行程序
+        vim.cmd(string.format("vsplit | term bash -c \"%s\"", run_cmd))
+    else
+        -- 编译失败，显示错误信息并不打开新窗口
+        vim.notify("Compilation failed", "error", {title = "Error", timeout = 300})
+    end
 end
+
 
 -- 根据操作系统选择合适的编译运行方式
 if vim.fn.has('unix') == 1 then
