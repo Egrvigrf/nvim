@@ -14,29 +14,22 @@ local dap = require('dap')
 
 -- 每次启动时自动更新配置
 local config_dir = vim.fn.stdpath('config')
-local result = os.execute('cd ' .. config_dir .. ' && git pull origin main')
+local result = os.execute('cd ' .. config_dir .. ' && git fetch origin')
 
--- 监听 Git 更新结果并通过 dap 通知
-if result == 0 then
-    dap.set_log_level('INFO')
-    dap.adapters['my_adapter'] = {
-        type = 'server',
-        host = 'localhost',
-        port = 8080,
-    }
-    dap.listeners.after.event_initialized['my_listener'] = function()
-        vim.notify("Neovim 配置已更新！", vim.log.levels.INFO)
-    end
+-- 获取当前的本地分支和远程分支状态
+local local_commit = vim.fn.system('git rev-parse @')
+local remote_commit = vim.fn.system('git rev-parse origin/main')
+
+if local_commit == remote_commit then
+    -- 如果配置已经是最新的
+    vim.notify("Neovim 配置已是最新的！", vim.log.levels.INFO)
+elseif result == 0 then
+    -- 如果 Git 更新成功
+    os.execute('cd ' .. config_dir .. ' && git pull origin main')
+    vim.notify("Neovim 配置已更新！", vim.log.levels.INFO)
 else
-    dap.set_log_level('ERROR')
-    dap.adapters['my_adapter'] = {
-        type = 'server',
-        host = 'localhost',
-        port = 8080,
-    }
-    dap.listeners.after.event_initialized['my_listener'] = function()
-        vim.notify("配置更新失败，请检查网络连接或 Git 仓库！", vim.log.levels.ERROR)
-    end
+    -- 如果更新失败，显示错误消息
+    vim.notify("配置更新失败，请检查网络连接或 Git 仓库！", vim.log.levels.ERROR)
 end
 
 
