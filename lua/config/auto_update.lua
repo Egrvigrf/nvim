@@ -25,6 +25,3 @@ else
     vim.notify("Neovim 配置已是最新的！", vim.log.levels.INFO, { timeout = 3000 })  -- 设置 3 秒
 end
 
--- 其他 Neovim 配置
-vim.opt.number = true
-vim.opt.relativenumber = true
