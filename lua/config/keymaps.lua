@@ -37,15 +37,24 @@ function CompileAndRunLinux()
     -- 更改当前工作目录为文件所在目录
     vim.cmd("lcd %:p:h")
 
-    -- 构建编译和运行命令
-    local compile_cmd = string.format("g++ -std=c++20 \"%s\" -o \"%s\"", vim.fn.expand('%:p'), vim.fn.expand('%:p:r'))
-    local run_cmd = string.format("./%s", vim.fn.expand('%:p:r'))
+    -- 获取文件的完整路径
+    local file_path = vim.fn.expand('%:p')
+    local file_name_without_ext = vim.fn.expand('%:p:r')
+
+    -- 构建编译命令
+    local compile_cmd = string.format("g++ -std=c++20 \"%s\" -o \"%s\"", file_path, file_name_without_ext)
+
+    -- 构建运行命令
+    local run_cmd = string.format("./%s", file_name_without_ext)
 
     -- 尝试编译
     local compile_result = vim.fn.system(compile_cmd)
 
     -- 判断编译是否成功
     if vim.v.shell_error == 0 then
+        -- 编译成功，给生成的可执行文件添加执行权限
+        vim.fn.system(string.format("chmod +x \"%s\"", file_name_without_ext))
+
         -- 打开终端运行程序
         vim.cmd(string.format("vsplit | term bash -c \"%s\"", run_cmd))
     else
@@ -53,6 +62,7 @@ function CompileAndRunLinux()
         vim.notify("Compilation failed", "error", {title = "Error", timeout = 300})
     end
 end
+
 
 
 -- 根据操作系统选择合适的编译运行方式
