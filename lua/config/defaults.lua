@@ -19,6 +19,8 @@ local options = {
 	smartcase = true,
 	splitright = true,
 	splitbelow = true,
+	swapfile = false,
+	backup = false,
 }
 -- 用一个循环来设置基本参数
 for key, value in pairs(options) do

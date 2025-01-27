@@ -1,8 +1,19 @@
+-- 获取操作系统类型
+local is_windows = vim.fn.has('win32') == 1
+local config_path
+
+if is_windows then
+    -- Windows 系统的路径
+    config_path = "$LOCALAPPDATA\\nvim\\init.lua"
+else
+    -- 非 Windows 系统的路径（例如 Linux）
+    config_path = "~/.config/nvim/init.lua"
+end
+
 return {
     "nvim-telescope/telescope.nvim",
     dependencies = {
         "nvim-lua/plenary.nvim",
-        "nvim-telescope/telescope-file-browser.nvim",
         "nvimdev/dashboard-nvim"
     },
     config = function()
@@ -14,89 +25,9 @@ return {
         local conf = require("telescope.config").values
 
         telescope.setup {
-            extensions = {
-                file_browser = {
-                    hijack_netrw = true,
-                    mappings = {
-                        ["i"] = {
-                            -- Custom insert mode mappings
-                        },
-                        ["n"] = {
-                            ["<CR>"] = function(prompt_bufnr)
-                                local current_picker = action_state.get_current_picker(prompt_bufnr)
-                                local cwd = current_picker.cwd
-                                local selection = action_state.get_selected_entry()
-                                local path = selection.path or selection.filename
-
-                                if vim.fn.isdirectory(path) == 1 then
-                                    actions.close(prompt_bufnr)
-                                    vim.cmd("lcd " .. path)
-                                    telescope.extensions.file_browser.file_browser({ cwd = path })
-                                else
-                                    actions.select_default(prompt_bufnr)
-                                    vim.cmd("lcd " .. cwd)
-                                end
-                            end,
-                            ["h"] = function(prompt_bufnr)
-                                local current_picker = action_state.get_current_picker(prompt_bufnr)
-                                local cwd = current_picker.cwd
-                                local parent_dir = vim.fn.fnamemodify(cwd, ":h")
-
-                                if parent_dir ~= cwd then
-                                    actions.close(prompt_bufnr)
-                                    vim.cmd("lcd " .. parent_dir)
-                                    telescope.extensions.file_browser.file_browser({ cwd = parent_dir })
-                                else
-                                    select_drive()
-                                end
-                            end,
-                        },
-                    },
-                },
-            },
+            extensions = {},
         }
 
-        telescope.load_extension('file_browser')
-
-        local function browse_drive(drive)
-            telescope.extensions.file_browser.file_browser({
-                cwd = drive,
-            })
-        end
-
-        function select_drive()
-            local drives = {}
-            for _, drive in ipairs({'C:\\', 'D:\\', 'E:\\', 'F:\\', 'G:\\', 'H:\\', 'I:\\', 'J:\\', 'K:\\'}) do
-                if vim.fn.isdirectory(drive) == 1 then
-                    table.insert(drives, drive)
-                end
-            end
-
-            pickers.new({}, {
-                prompt_title = "Select Drive",
-                finder = finders.new_table {
-                    results = drives,
-                    entry_maker = function(entry)
-                        return {
-                            value = entry,
-                            display = entry,
-                            ordinal = entry,
-                        }
-                    end
-                },
-                sorter = conf.generic_sorter({}),
-                attach_mappings = function(prompt_bufnr, map)
-                    actions.select_default:replace(function()
-                        actions.close(prompt_bufnr)
-                        local selection = action_state.get_selected_entry()
-                        browse_drive(selection.value)
-                    end)
-                    return true
-                end,
-            }):find()
-        end
-
-        -- 配置 Dashboard
         require('dashboard').setup({
             theme = "doom", -- 或 'hyper'
             config = {
@@ -120,12 +51,6 @@ return {
                         action = "Telescope oldfiles"
                     },
                     {
-                        icon = " ",
-                        desc = "Open File Browser ",
-                        key = "o",
-                        action = select_drive
-                    },
-                    {
                         icon = " ",
                         desc = "Bookmarks           ",
                         key = "m",
@@ -141,10 +66,10 @@ return {
                         icon = " ",
                         desc = "Open Config         ",
                         key = "c",
-                        action = "edit $LOCALAPPDATA\\nvim\\init.lua"
+                        action = "edit " .. config_path  -- 根据系统路径设置
                     },
                 },
-                footer = {"I have a bugcat",
+                footer = {"I am elated.",
                             "~",
                         }, -- 自定义脚注
             },
