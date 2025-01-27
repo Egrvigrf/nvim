@@ -20,16 +20,20 @@ fi
 # 仓库地址
 GIT_REPO_URL="https://github.com/Egrvigrf/nvim.git"
 
-# 如果配置目录不存在，或者不是 Git 仓库，则删除并重新克隆仓库
+# 如果配置目录存在，强制删除并重新克隆仓库
 if [ -d "$NVIM_CONFIG_DIR" ]; then
-    if [ ! -d "$NVIM_CONFIG_DIR/.git" ]; then
-        echo "$NVIM_CONFIG_DIR 目录存在，但不是 Git 仓库，正在删除并重新克隆..."
+    echo "$NVIM_CONFIG_DIR 目录存在，正在删除并重新克隆..."
+    # 确认删除操作
+    read -p "确定要删除 $NVIM_CONFIG_DIR 吗? (y/n): " confirm
+    if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
         rm -rf "$NVIM_CONFIG_DIR"  # 删除该目录
+        echo "目录已删除"
     else
-        echo "配置目录已存在且是 Git 仓库，跳过删除。"
+        echo "操作取消"
+        exit 1
     fi
 else
-    echo "配置目录不存在，正在克隆配置仓库..."
+    echo "配置目录不存在，准备克隆配置仓库..."
 fi
 
 # 克隆仓库
