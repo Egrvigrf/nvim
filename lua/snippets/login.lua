@@ -39,7 +39,6 @@ ls.add_snippets("cpp", {
             "}",
             "",
             "/**",
-            " * author:  Egrvigrf",
             " * created: "
         }),
         f(current_date_time, {}),
