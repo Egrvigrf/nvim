@@ -46,20 +46,14 @@ function CompileAndRun()
 end
 
 vim.api.nvim_set_keymap('n', '<F5>', ':lua CompileAndRun()<CR>', { noremap = true, silent = true })
-
+vim.api.nvim_set_keymap('n', '<C-m>', ':MarkdownPreview<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<C-n>', ':MarkdownPreviewStop<CR>', { noremap = true, silent = true })
 -- Tree
 -- 切换 NvimTree 文件管理窗口
 vim.api.nvim_set_keymap('n', '<Leader>e', ':NvimTreeToggle<CR>', { noremap = true, silent = true })
 
 -- Neogit
--- 创建一个函数来打开 Neogit 并显示通知
-function OpenNeogit()
-    vim.cmd("silent Neogit")
-    vim.notify("Neogit 已打开", "info", {title = "Neogit 通知"})
-end
-
--- 设置快捷键映射调用 Lua 函数
-vim.api.nvim_set_keymap('n', '<C-g>', ':lua OpenNeogit()<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<C-g>', ':Neogit<CR>', { noremap = true, silent = true })
 
 -- Competitivetest
 -- 设置快捷键用于常见的 CompetitiveTest 操作
@@ -69,16 +63,6 @@ vim.api.nvim_set_keymap('n', 'ce', ':CompetiTest edit_testcase<CR>', { noremap =
 vim.api.nvim_set_keymap('n', 'ct', ':CompetiTest receive testcases<CR>', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', 'cp', ':CompetiTest receive problem<CR>', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', 'cc', ':CompetiTest receive contest<CR>', { noremap = true, silent = true })
-
--- 设置快捷键为 <Leader>cd，用于更改当前工作目录为文件所在目录
-vim.api.nvim_set_keymap('n', '<Leader>cd', ':lua ChangeDirectoryToCurrentFile()<CR>', { noremap = true, silent = true })
-
--- 定义函数 ChangeDirectoryToCurrentFile
-function ChangeDirectoryToCurrentFile()
-    local current_file_path = vim.fn.expand('%:p:h')
-    vim.cmd('cd ' .. current_file_path)
-    vim.notify('Current directory changed to: ' .. current_file_path, vim.log.levels.INFO)
-end
 
 -- 使用 Telescope 打开文件浏览器
 vim.api.nvim_set_keymap('n', '<Leader>fb', ":Telescope file_browser<CR>", { noremap = true, silent = true })

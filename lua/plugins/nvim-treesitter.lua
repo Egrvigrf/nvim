@@ -16,9 +16,6 @@ return {
                     max_file_lines = nil,
                 },
             }
-
-
-
         end,
     }
 }

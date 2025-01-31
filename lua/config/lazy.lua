@@ -25,7 +25,8 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
   spec = {
     -- import your plugins
-    { import = "plugins" },
+    { import = "plugins" }, -- this is equalent to setup({}) function
+    {  'windwp/nvim-autopairs',event = "InsertEnter",opts = {} },
   },
   -- Configure any other settings here. See the documentation for more details.
   -- colorscheme that will be used when installing plugins.
@@ -35,3 +36,4 @@ require("lazy").setup({
 })
 require 'lspconfig'.clangd.setup {} -- 启用自动补全，一定要加上啊
 require 'lspconfig'.lua_ls.setup {}
+require 'lspconfig'.markdown_oxide.setup {}

@@ -24,13 +24,5 @@ return {
 
         -- 设置快捷键来手动格式化代码
         vim.api.nvim_set_keymap('n', '<Leader>f', ':lua require("conform").format()<CR>', { noremap = true, silent = true })
-
-        -- 自动格式化设置
-        vim.cmd [[
-            augroup ConformFormatAutogroup
-                autocmd!
-                autocmd BufWritePost * lua require("conform").format()
-            augroup END
-        ]]
-    end
+    end,
 }

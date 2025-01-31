@@ -1,11 +1,3 @@
--- 自动命令：文件保存时触发 LSP 格式化
--- vim.api.nvim_create_autocmd("BufWritePre", {
---    pattern = "*",
---    callback = function()
---        require('conform').format()
---    end,
--- })
-
 -- 进入插入模式时禁用高亮显示
 local group = vim.api.nvim_create_augroup("IndentBlanklineScopeToggle", { clear = true })
 
