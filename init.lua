@@ -284,20 +284,12 @@ require("lazy").setup({
       -- Mason.nvim
   {
     "williamboman/mason.nvim",
-    opts = {},
-  },
-
-  -- Mason Tool Installer
-  {
-    "WhoIsSethDaniel/mason-tool-installer.nvim",
     opts = {
       ensure_installed = {
         "clang-format", -- C, C++
         "clangd",
       },
-      auto_update = false,
-      run_on_start = true,
-    },
+    }
   },
 
   -- nvim-lspconfig
