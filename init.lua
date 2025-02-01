@@ -308,80 +308,134 @@ require("lazy").setup({
             end,
         },
         {
-            "hrsh7th/nvim-cmp",
-            event = "InsertEnter",
-            dependencies = {
-                "hrsh7th/cmp-nvim-lsp",
-                "hrsh7th/cmp-buffer",
-                "hrsh7th/cmp-cmdline",
-                "onsails/lspkind-nvim",
-            },
-            config = function()
-                local cmp = require("cmp")
-                local lspkind = require("lspkind")
-                local function tab(fallback)
-                    if cmp.visible() then
-                        cmp.select_next_item()
-                    else
-                        fallback()
-                    end
-                end
-                local function shift_tab(fallback)
-                    if cmp.visible() then
-                        cmp.select_prev_item()
-                    else
-                        fallback()
-                    end
-                end
-                cmp.setup({
-                    snippet = {
-                        expand = function(args)
-                        end,
-                    },
-                    window = {
-                        completion = cmp.config.window.bordered(),
-                        documentation = cmp.config.window.bordered(),
-                    },
-                    formatting = {
-                        format = lspkind.cmp_format({
-                            mode = "symbol_text",
-                            maxwidth = 50,
-                            ellipsis_char = "...",
-                        }),
-                    },
-                    mapping = cmp.mapping.preset.insert({
-                        ["<C-b>"] = cmp.mapping.scroll_docs(-4),
-                        ["<C-f>"] = cmp.mapping.scroll_docs(4),
-                        ["<C-Space>"] = cmp.mapping.complete(),
-                        ["<C-e>"] = cmp.mapping.abort(),
-                        ["<CR>"] = cmp.mapping.confirm({ select = true }),
-                        ["<Tab>"] = cmp.mapping(tab, { "i", "s" }),
-                        ["<S-Tab>"] = cmp.mapping(shift_tab, { "i", "s" }),
-                    }),
-                    sources = cmp.config.sources({
-                        { name = "nvim_lsp" },
-                        { name = "buffer" },
-                    }),
-                    completion = {
-                        keyword_length = 2,
-                        completeopt = "menu,menuone,noinsert",
-                        max_item_count = 5,
-                    },
-                })
-                cmp.setup.filetype("cpp", {
-                    sources = cmp.config.sources({
-                        { name = "nvim_lsp" },
-                        { name = "buffer" },
-                    }),
-                })
-                cmp.setup.cmdline({ "/", "?" }, {
-                    mapping = cmp.mapping.preset.cmdline(),
-                    sources = {
-                        { name = "buffer" },
-                    },
-                })
-            end,
-        },
+  "hrsh7th/nvim-cmp",
+  event = { "InsertEnter", "CmdlineEnter" }, -- 同时支持命令行补全
+  dependencies = {
+    "hrsh7th/cmp-nvim-lsp",
+    "hrsh7th/cmp-buffer",
+    "hrsh7th/cmp-path",                      -- 文件路径补全
+    "hrsh7th/cmp-cmdline", 
+    "onsails/lspkind-nvim",
+    "L3MON4D3/LuaSnip",                     -- 代码片段支持
+    "saadparwaiz1/cmp_luasnip",             -- luasnip 集成
+    "rafamadriz/friendly-snippets",         -- 预设代码片段
+  },
+  config = function()
+    local cmp = require("cmp")
+    local luasnip = require("luasnip")
+    local lspkind = require("lspkind")
+
+    -- 加载预设代码片段
+    require("luasnip.loaders.from_vscode").lazy_load()
+
+    -- 智能确认函数
+    local has_words_before = function()
+      local line, col = unpack(vim.api.nvim_win_get_cursor(0))
+      return col ~= 0 and vim.api.nvim_buf_get_lines(0, line - 1, line, true)[1]:sub(col, col):match("%s") == nil
+    end
+
+    cmp.setup({
+      snippet = {
+        expand = function(args)
+          luasnip.lsp_expand(args.body)
+        end,
+      },
+      window = {
+        completion = cmp.config.window.bordered({
+          winhighlight = "Normal:Normal,FloatBorder:FloatBorder,CursorLine:Visual,Search:None",
+          col_offset = -1,    -- 对齐左侧
+          side_padding = 0,   -- 去除多余padding
+        }),
+        documentation = cmp.config.window.bordered(),
+      },
+      formatting = {
+        format = lspkind.cmp_format({
+          mode = "symbol_text",
+          maxwidth = 50,
+          ellipsis_char = "...",
+          before = function(entry, vim_item)
+            -- 显示源名称
+            vim_item.menu = string.format("[%s]", string.upper(entry.source.name))
+            return vim_item
+          end
+        }),
+      },
+      mapping = cmp.mapping.preset.insert({
+        ["<C-b>"] = cmp.mapping.scroll_docs(-4),
+        ["<C-f>"] = cmp.mapping.scroll_docs(4),
+        ["<C-Space>"] = cmp.mapping.complete(),
+        ["<C-e>"] = cmp.mapping.abort(),
+        ["<CR>"] = cmp.mapping.confirm({
+          behavior = cmp.ConfirmBehavior.Replace,
+          select = true,
+        }),
+        ["<Tab>"] = cmp.mapping(function(fallback)
+          if cmp.visible() then
+            cmp.select_next_item()
+          elseif luasnip.expand_or_jumpable() then
+            luasnip.expand_or_jump()
+          elseif has_words_before() then
+            cmp.complete()
+          else
+            fallback()
+          end
+        end, { "i", "s" }),
+        ["<S-Tab>"] = cmp.mapping(function(fallback)
+          if cmp.visible() then
+            cmp.select_prev_item()
+          elseif luasnip.jumpable(-1) then
+            luasnip.jump(-1)
+          else
+            fallback()
+          end
+        end, { "i", "s" }),
+      }),
+      sources = cmp.config.sources({
+        { name = "nvim_lsp", priority = 1000 },  -- LSP 最高优先级
+        { name = "luasnip",  priority = 750 },   -- 代码片段
+        { name = "buffer",   priority = 500 },   -- 缓冲区内容
+        { name = "path",     priority = 250 },   -- 文件路径
+      }),
+      sorting = {
+        comparators = {
+          cmp.config.compare.offset,
+          cmp.config.compare.exact,
+          cmp.config.compare.score,
+          cmp.config.compare.recently_used,
+          cmp.config.compare.kind,
+          cmp.config.compare.sort_text,
+          cmp.config.compare.length,
+          cmp.config.compare.order,
+        }
+      },
+      experimental = {
+        ghost_text = { hl_group = "Comment" },  -- 半透明预览文本
+      },
+      performance = {
+        debounce = 50,         -- 输入延迟处理
+        throttle = 100,        -- 补全请求间隔
+        fetching_timeout = 200 -- 补全源超时
+      }
+    })
+
+    -- 命令行补全配置
+    cmp.setup.cmdline({ "/", "?" }, {
+      mapping = cmp.mapping.preset.cmdline(),
+      sources = {
+        { name = "buffer" }
+      }
+    })
+
+    -- cmdline 补全配置
+    cmp.setup.cmdline(":", {
+      mapping = cmp.mapping.preset.cmdline(),
+      sources = cmp.config.sources({
+        { name = "path" },
+        { name = "cmdline" }
+      })
+    })
+  end
+},
         {
             'stevearc/conform.nvim',
             config = function()
