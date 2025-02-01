@@ -7,6 +7,7 @@ For Linux: "$HOME/.config/nvim"
 ## nvimconfig
 - 使用lazy插件管理器
 - mason来管理代码补全
+
 ## 可能出现的问题
 - lualine和telescope的符号显示乱码，需要设置支持图形字符的终端字体（比如Nerd fonts）
 [Nerd_font](https://www.nerdfonts.com/)  
