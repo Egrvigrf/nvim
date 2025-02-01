@@ -99,7 +99,7 @@ vim.api.nvim_set_keymap('n', 'ce', ':CompetiTest edit_testcase<CR>', { noremap =
 vim.api.nvim_set_keymap('n', 'ct', ':CompetiTest receive testcases<CR>', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', 'cp', ':CompetiTest receive problem<CR>', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('n', 'cc', ':CompetiTest receive contest<CR>', { noremap = true, silent = true })
-
+vim.api.nvim_set_keymap('n', 'cs', ':CompetiTest show_ui<CR>', { noremap = true, silent = true })
 -- 字体大小调整
 local default_font_size = 12
 local current_font_size = default_font_size
@@ -203,7 +203,6 @@ require("lazy").setup({
       config = true
     },
 
-    -- 插件：lualine
     {
       "nvim-lualine/lualine.nvim",
       dependencies = { "nvim-tree/nvim-web-devicons" },
@@ -227,6 +226,7 @@ require("lazy").setup({
         lualine.setup(config_minimal)
       end,
     },
+
      {
     "nvim-tree/nvim-tree.lua",
     dependencies = {
@@ -260,6 +260,7 @@ require("lazy").setup({
         }
     end,
 },
+
           {
     {
         "nvim-treesitter/nvim-treesitter",
@@ -281,7 +282,7 @@ require("lazy").setup({
         end,
     }
 },
-      -- Mason.nvim
+
       {
         "williamboman/mason.nvim",
         opts = {},
@@ -295,7 +296,6 @@ require("lazy").setup({
         end
     },
 
-  -- nvim-lspconfig
   {
     "neovim/nvim-lspconfig",
     event = { "BufReadPre", "BufNewFile" },
@@ -304,12 +304,10 @@ require("lazy").setup({
       "williamboman/mason-lspconfig.nvim",
     },
     config = function()
-      -- 配置 Mason
       --require("mason").setup()
       require("mason-lspconfig").setup({
           ensure_installed = {  "clangd" }, -- 自动安装的 LSP 服务器
       })
-
       -- 配置 LSP 诊断图标
       local signs = {
         Error = "",
@@ -340,6 +338,7 @@ require("lazy").setup({
 
     end,
   },
+
  {
   "hrsh7th/nvim-cmp",
   event = "InsertEnter", -- 仅在进入插入模式时加载
@@ -370,8 +369,6 @@ require("lazy").setup({
         fallback()
       end
     end
-
-    -- 设置 cmp
     cmp.setup({
       snippet = {
         expand = function(args)
@@ -404,10 +401,9 @@ require("lazy").setup({
       completion = {
         keyword_length = 2, -- 触发补全的最少字符数
         completeopt = "menu,menuone,noinsert", -- 补全选项
-        max_item_count = 10, -- 补全列表的最大项数
+        max_item_count = 5, -- 补全列表的最大项数
       },
     })
-
     -- 针对 C++ 文件类型的补全配置
     cmp.setup.filetype("cpp", {
       sources = cmp.config.sources({
@@ -415,7 +411,6 @@ require("lazy").setup({
         { name = "buffer" }, -- 缓冲区补全
       }),
     })
-
     -- 命令行补全配置
     cmp.setup.cmdline({ "/", "?" }, {
       mapping = cmp.mapping.preset.cmdline(),
@@ -423,9 +418,9 @@ require("lazy").setup({
         { name = "buffer" }, -- 缓冲区补全
       },
     })
-
   end,
 },
+
          {
     'stevearc/conform.nvim',
     config = function()
@@ -452,152 +447,17 @@ require("lazy").setup({
         vim.api.nvim_set_keymap('n', '<Leader>f', ':lua require("conform").format()<CR>', { noremap = true, silent = true })
     end,
 },
+        -- nvim版cph
     {
-    'xeluxee/competitest.nvim',
-    dependencies = 'MunifTanjim/nui.nvim',
-    config = function()
-        require('competitest').setup {
-            local_config_file_name = ".competitest.lua",
-            floating_border = "rounded",
-            floating_border_highlight = "FloatBorder",
-            
-            picker_ui = {
-                width = 0.2,
-                height = 0.3,
-                mappings = {
-                    focus_next = { "j", "<down>", "<Tab>" },
-                    focus_prev = { "k", "<up>", "<S-Tab>" },
-                    close = { "<esc>", "<C-c>", "q", "Q" },
-                    submit = { "<cr>" },
-                },
-            },
-            
-            editor_ui = {
-                popup_width = 0.4,
-                popup_height = 0.6,
-                show_nu = true,
-                show_rnu = false,
-                normal_mode_mappings = {
-                    switch_window = { "<C-h>", "<C-l>", "<C-i>" },
-                    save_and_close = "<C-s>",
-                    cancel = { "q", "Q" },
-                },
-                insert_mode_mappings = {
-                    switch_window = { "<C-h>", "<C-l>", "<C-i>" },
-                    save_and_close = "<C-s>",
-                    cancel = "<C-q>",
-                },
-            },
-            
-            runner_ui = {
-                interface = "split",  -- 可以选择 "popup" 或 "split"
-                selector_show_nu = false,
-                selector_show_rnu = false,
-                show_nu = true,
-                show_rnu = false,
-                mappings = {
-                    run_again = "R",
-                    run_all_again = "<C-r>",
-                    kill = "K",
-                    kill_all = "<C-k>",
-                    view_input = { "i", "I" },
-                    view_output = { "a", "A" },
-                    view_stdout = { "o", "O" },
-                    view_stderr = { "e", "E" },
-                    toggle_diff = { "d", "D" },
-                    close = { "q", "Q" },
-                },
-                viewer = {
-                    width = 0.5,
-                    height = 0.5,
-                    show_nu = true,
-                    show_rnu = false,
-                    close_mappings = { "q", "Q" },
-                },
-            },
-            
-            popup_ui = {
-                total_width = 0.9,
-                total_height = 0.9,
-				layout = {
-					{ 1, {
-						{ 1, "so" },
-						{ 1, {
-							{ 2, "tc" },
-							{ 1, "se" },
-							} },
-					} },
-					{ 1, {
-						{ 1, "eo" },
-						{ 1, "si" },
-					} },
-				},
-            },
-            
-            split_ui = {
-                position = "left",
-                relative_to_editor = true,
-                total_width = 0.5,
-                vertical_layout = {
-                    { 1, "tc" },
-                    { 1, { { 1, "so" }, { 1, "eo" } } },
-                    { 1, { { 1, "si" }, { 1, "se" } } },
-                },
-                total_height = 0.4,
-                horizontal_layout = {
-                    { 2, "tc" },
-                    { 3, { { 1, "so" }, { 1, "si" } } },
-                    { 3, { { 1, "eo" }, { 1, "se" } } },
-                },
-            },
-            
-            save_current_file = true,
-            save_all_files = false,
-            compile_directory = ".",
-            compile_command = {
-                c = { exec = "gcc", args = { "-Wall", "$(FNAME)", "-o", "$(FNOEXT)" } },
-                cpp = { exec = "g++", args = { "-Wall", "$(FNAME)", "-o", "$(FNOEXT)" } },
-                rust = { exec = "rustc", args = { "$(FNAME)" } },
-                java = { exec = "javac", args = { "$(FNAME)" } },
-            },
-            running_directory = ".",
-            run_command = {
-                c = { exec = "./$(FNOEXT)" },
-                cpp = { exec = "./$(FNOEXT)" },
-                rust = { exec = "./$(FNOEXT)" },
-                python = { exec = "python", args = { "$(FNAME)" } },
-                java = { exec = "java", args = { "$(FNOEXT)" } },
-            },
-            multiple_testing = -1,
-            maximum_time = 5000,
-            output_compare_method = "squish",
-            view_output_diff = false,
-            
-            testcases_directory = ".",
-            testcases_use_single_file = false,
-            testcases_auto_detect_storage = true,
-            testcases_single_file_format = "$(FNOEXT).testcases",
-            testcases_input_file_format = "$(FNOEXT)_input$(TCNUM).txt",
-            testcases_output_file_format = "$(FNOEXT)_output$(TCNUM).txt",
-            
-            companion_port = 27121,
-            receive_print_message = true,
-            template_file = false,
-            evaluate_template_modifiers = false,
-            date_format = "%c",
-            received_files_extension = "cpp",
-            received_problems_path = "$(CWD)/$(PROBLEM).$(FEXT)",
-            received_problems_prompt_path = true,
-            received_contests_directory = "$(CWD)",
-            received_contests_problems_path = "$(PROBLEM).$(FEXT)",
-            received_contests_prompt_directory = true,
-            received_contests_prompt_extension = true,
-            open_received_problems = true,
-            open_received_contests = true,
-            replace_received_testcases = false,
-        }
-    end,
-},
+	 'xeluxee/competitest.nvim',
+	 dependencies = 'MunifTanjim/nui.nvim',
+	 config = function()
+      require('competitest').setup({
+      template_file =  vim.fn.stdpath("config")  .. "/template.cpp",
+      --evaluate_template_modifiers = true,
+    })
+        end,
+    }, 
 
     },
   -- 配置：插件安装和更新
