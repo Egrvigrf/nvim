@@ -282,15 +282,18 @@ require("lazy").setup({
     }
 },
       -- Mason.nvim
-  {
-    "williamboman/mason.nvim",
-    opts = {
-      ensure_installed = {
-        "clang-format", -- C, C++
-        "clangd",
-      },
-    }
-  },
+      {
+        "williamboman/mason.nvim",
+        opts = {},
+        config = function()
+            -- 确保 mason 已经初始化
+            require("mason").setup()
+            -- 检查 clang-format是否已经安装
+            if vim.fn.executable("clang-format") == 0 then
+              vim.cmd("MasonInstall clang-format --force<CR>")
+            end
+        end
+    },
 
   -- nvim-lspconfig
   {
@@ -302,9 +305,9 @@ require("lazy").setup({
     },
     config = function()
       -- 配置 Mason
-      require("mason").setup()
+      --require("mason").setup()
       require("mason-lspconfig").setup({
-        ensure_installed = {  "clangd", }, -- 自动安装的 LSP 服务器
+          ensure_installed = {  "clangd" }, -- 自动安装的 LSP 服务器
       })
 
       -- 配置 LSP 诊断图标
@@ -331,7 +334,7 @@ require("lazy").setup({
 					
       -- Clangd LSP 配置
       lspconfig.clangd.setup({
-	capabilities = capabilities,
+	      capabilities = capabilities,
         on_attach = on_attach,					
       })
 
@@ -608,3 +611,7 @@ require 'lspconfig'.clangd.setup {}
 -- 选择主题
 vim.cmd([[colorscheme monokai_soda]])
 --vim.cmd([[colorscheme tokyonight]])
+
+
+
+
