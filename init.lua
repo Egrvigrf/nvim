@@ -150,8 +150,9 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
     -- 主题插件
-    { "tanvirtin/monokai.nvim" },
-    { "folke/tokyonight.nvim" },
+    { "tanvirtin/monokai.nvim", priority = 1000  },
+    { "folke/tokyonight.nvim", priority = 1000  },
+    { "ellisonleao/gruvbox.nvim", priority = 1000},
     -- 基础插件
     { "windwp/nvim-autopairs", event = "InsertEnter", opts = {} },
     
@@ -342,7 +343,7 @@ require("lazy").setup({
             exclude = { filetypes = { "help", "dashboard", "NvimTree", "Trouble" } }
         }
     },
-    --
+    -- 自动注释
     {
         'numToStr/Comment.nvim',
         config = function()
@@ -406,17 +407,49 @@ require("lazy").setup({
     },
 
 })
-
--- 启动后配置
-vim.api.nvim_create_autocmd("User", {
-    pattern = "VeryLazy",
+-- 创建一个函数来更新 theme.txt 文件
+local config_dir = vim.fn.stdpath("config")
+local function update_theme_file(theme_name)
+    local theme_file = config_dir .. "/theme.txt"
+    -- 打开文件进行写入
+    local file = io.open(theme_file, "w")
+    if file then
+        file:write(theme_name) 
+        file:close()
+    end
+end
+-- 主题变化后保存
+vim.api.nvim_create_autocmd("ColorScheme", {
     callback = function()
-        -- 选择主题
-           vim.cmd([[colorscheme monokai_soda]])
+        local theme_name = vim.g.colors_name
+        update_theme_file(theme_name)
+    end
+})
+-- 初始化时读取 theme.txt 文件并设置主题
+local function load_theme_from_file()
+    local theme_file = config_dir .. "/theme.txt"
+    local theme_name = ""
+    local file = io.open(theme_file, "r")
+    if file then
+        theme_name = file:read("*line")  -- 读取第一行作为主题名称
+        file:close()
+    end
+    if theme_name and theme_name ~= "" then
+        vim.cmd("colorscheme " .. theme_name)
+    else
+        -- 如果没有有效主题，设置默认主题
+           vim.cmd([[colorscheme monokai]])
         -- vim.cmd([[colorscheme tokyonight-storm]])
         -- vim.cmd([[colorscheme retrobox]])
         -- vim.cmd([[colorscheme habamax]])
-        -- 初始化状态栏
+        -- vim.cmd([[colorscheme gruvbox]])
+    end
+end
+-- 插件启动后执行配置
+vim.api.nvim_create_autocmd("User", {
+    pattern = "VeryLazy",
+    callback = function()
+        load_theme_from_file()
         require("lualine").setup({
             options = { theme = "auto" },
             --sections = { lualine_a = { "mode" }, lualine_c = { "filename" } }
