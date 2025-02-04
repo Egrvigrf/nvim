@@ -82,7 +82,8 @@ end, { desc = 'Open Neovim config' })
 
 -- Neogit
 k.set('n', '<C-g>', ':Neogit<CR>', { noremap = true, silent = true })
-
+-- MarkdownPreview
+k.set('n', '<C-m>', ':MarkdownPreview<CR>', { noremap = true, silent = true })
 -- CompetitiveTest 快捷键
 k.set('n', 'ca', ':CompetiTest add_testcase<CR>', { noremap = true, silent = true })
 k.set('n', 'cr', ':CompetiTest run<CR>', { noremap = true, silent = true })
@@ -405,7 +406,15 @@ require("lazy").setup({
             })
         end,
     },
-
+    {
+        "iamcco/markdown-preview.nvim",
+        cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
+        build = "cd app && yarn install",
+        init = function()
+        vim.g.mkdp_filetypes = { "markdown" }
+        end,
+        ft = { "markdown" },
+    },
 })
 -- 创建一个函数来更新 theme.txt 文件
 local config_dir = vim.fn.stdpath("config")
@@ -445,7 +454,6 @@ local function load_theme_from_file()
         -- vim.cmd([[colorscheme gruvbox]])
     end
 end
--- 插件启动后执行配置
 vim.api.nvim_create_autocmd("User", {
     pattern = "VeryLazy",
     callback = function()
