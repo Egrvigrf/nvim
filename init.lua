@@ -125,6 +125,8 @@ k.set('n', '<C-a>', 'ggVG', { noremap = true, silent = true })
 k.set('n', '<C-v>', '"+p', { noremap = true, silent = true })
 k.set('v', '<C-c>', '"+y', { noremap = true, silent = true })
 
+-- leader + f 格式化cpp代码
+vim.api.nvim_set_keymap('n', '<Leader>f', ':lua require("conform").format()<CR>', { noremap = true, silent = true })
 -- LSP 基础配置
 local on_attach = function(client, bufnr)
     local bufopts = { noremap = true, silent = true, buffer = bufnr }
@@ -157,14 +159,6 @@ require("lazy").setup({
     -- 基础插件
     { "windwp/nvim-autopairs", event = "InsertEnter", opts = {} },
     
-    -- 代码片段
-    {
-        "L3MON4D3/LuaSnip",
-        dependencies = { "rafamadriz/friendly-snippets" },
-        config = function()
-            require("luasnip.loaders.from_vscode").lazy_load()
-        end
-    },
     -- Mason
     {
         "williamboman/mason.nvim",
@@ -186,19 +180,12 @@ require("lazy").setup({
             "hrsh7th/cmp-path",
             "hrsh7th/cmp-cmdline",
             "onsails/lspkind.nvim",
-            "saadparwaiz1/cmp_luasnip",
         },
         config = function()
             local cmp = require("cmp")
-            local luasnip = require("luasnip")
+            -- local luasnip = require("luasnip")
             local lspkind = require("lspkind")
-
             cmp.setup({
-                snippet = {
-                    expand = function(args)
-                        luasnip.lsp_expand(args.body)
-                    end,
-                },
                 window = {
                     completion = cmp.config.window.bordered(),
                     documentation = cmp.config.window.bordered(),
@@ -206,7 +193,7 @@ require("lazy").setup({
                 formatting = {
                     format = lspkind.cmp_format({
                         mode = "symbol_text",
-                        maxwidth = 50,
+                        maxwidth = 15,
                         ellipsis_char = "...",
                     }),
                 },
@@ -219,8 +206,6 @@ require("lazy").setup({
                     ["<Tab>"] = cmp.mapping(function(fallback)
                         if cmp.visible() then
                             cmp.select_next_item()
-                        elseif luasnip.expand_or_jumpable() then
-                            luasnip.expand_or_jump()
                         else
                             fallback()
                         end
@@ -228,16 +213,36 @@ require("lazy").setup({
                     ["<S-Tab>"] = cmp.mapping(function(fallback)
                         if cmp.visible() then
                             cmp.select_prev_item()
-                        elseif luasnip.jumpable(-1) then
-                            luasnip.jump(-1)
                         else
                             fallback()
                         end
                     end, { "i", "s" }),
                 }),
-                sources = cmp.config.sources({
-                    { name = "nvim_lsp" },
-                    { name = "luasnip" },
+                sources = cmp.config.sources(
+                {
+                    {
+                    name = "nvim_lsp",
+                    entry_filter = function(entry)
+                    local item = entry:get_completion_item()
+                        if not item.kind then return true end
+
+                        -- 禁用的补全类型列表
+                        local disabled_kinds = {
+                            vim.lsp.protocol.CompletionItemKind.Interface,
+                            vim.lsp.protocol.CompletionItemKind.EnumMember,
+                            vim.lsp.protocol.CompletionItemKind.Snippet,
+                        }
+
+                        -- 循环检查补全项的 kind 是否在禁用列表中
+                        for _, kind in ipairs(disabled_kinds) do
+                            if item.kind == kind then
+                                return false  -- 如果是禁用类型，直接排除
+                            end
+                        end
+
+                        return true  -- 其他类型允许继续
+                    end
+                },
                     { name = "buffer", config = function() require("bufferline").setup{} end },
                     { name = "path" },
                 }),
@@ -393,19 +398,12 @@ require("lazy").setup({
                     }
                 }
             })
-        -- 设置快捷键格式化代码
-        vim.api.nvim_set_keymap('n', '<Leader>f', ':lua require("conform").format()<CR>', { noremap = true, silent = true })
         end,
     },
     {
         'xeluxee/competitest.nvim',
         dependencies = 'MunifTanjim/nui.nvim',
-        config = function()
-            require('competitest').setup({
-                template_file = vim.fn.stdpath("config") .. "/template.cpp",
-            })
-        end,
-    },
+     },
     {
         "iamcco/markdown-preview.nvim",
         cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
@@ -418,16 +416,10 @@ require("lazy").setup({
     {
         "folke/noice.nvim",
         event = "VeryLazy",
-    opts = {
-    -- add any options here
-    },
+    opts = {},
     dependencies = {
-    -- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
         "MunifTanjim/nui.nvim",
-        -- OPTIONAL:
-        --   `nvim-notify` is only needed, if you want to use the notification view.
-        --   If not available, we use `mini` as the fallback
-        "rcarriga/nvim-notify",
+        --"rcarriga/nvim-notify",
         }
     },
 })
@@ -494,6 +486,9 @@ vim.api.nvim_create_autocmd("User", {
                 inc_rename = false, -- enables an input dialog for inc-rename.nvim
                 lsp_doc_border = false, -- add a border to hover docs and signature help
             },
+        })
+        require('competitest').setup({
+            template_file = vim.fn.stdpath("config") .. "/template.cpp",
         })
     end
 })
