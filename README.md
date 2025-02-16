@@ -36,5 +36,6 @@ CompileFlags:
 
 ## 其他问题
 windows cmd 没有添加到环境变量，手动添加C:\Windows\System32即可
-linux clangd-format 如果用:Masoninstall 安装失败，可以手动安装,可能是没有国内源
+linux clangd-format 如果用:Masoninstall 安装失败，可以手动安装,可能是没有国内源  
+linux 复制粘贴出现 clipboard: No provider. Try ":CheckHealth" or ":h clipboard". 安装xclip `sudo apt install xclip`
 
