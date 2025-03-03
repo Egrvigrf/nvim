@@ -228,9 +228,9 @@ require("lazy").setup({
 
                         -- 禁用的补全类型列表
                         local disabled_kinds = {
-                            vim.lsp.protocol.CompletionItemKind.Interface,
+                        --    vim.lsp.protocol.CompletionItemKind.Interface,
                             vim.lsp.protocol.CompletionItemKind.EnumMember,
-                            vim.lsp.protocol.CompletionItemKind.Snippet,
+                        --    vim.lsp.protocol.CompletionItemKind.Snippet,
                         }
 
                         -- 循环检查补全项的 kind 是否在禁用列表中
@@ -422,6 +422,45 @@ require("lazy").setup({
         --"rcarriga/nvim-notify",
         }
     },
+    {
+        'nvimdev/dashboard-nvim',
+        event = 'VimEnter',
+        config = function()
+          require('dashboard').setup {
+            theme = 'hyper',
+    config = {
+      week_header = {
+       enable = true,
+      },
+      shortcut = {
+        { desc = '󰊳 Update', group = '@property', action = 'Lazy update', key = 'u' },
+        {
+          icon = ' ',
+          icon_hl = '@variable',
+          desc = 'Files',
+          group = 'Label',
+          action = 'Telescope find_files',
+          key = 'f',
+        },
+        {
+          desc = ' Apps',
+          group = 'DiagnosticHint',
+          action = 'Telescope app',
+          key = 'a',
+        },
+        {
+          desc = ' dotfiles',
+          group = 'Number',
+          action = 'Telescope dotfiles',
+          key = 'd',
+        },
+      },
+    },
+          }
+        end,
+        dependencies = { {'nvim-tree/nvim-web-devicons'}}
+      },
+
 })
 -- 创建一个函数来更新 theme.txt 文件
 local config_dir = vim.fn.stdpath("config")
