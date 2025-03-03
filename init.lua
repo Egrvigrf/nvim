@@ -23,6 +23,17 @@ local options = {
     backup = false,   -- 禁用文件备份
 }
 
+--nvim光标设置
+vim.opt.guicursor = table.concat({
+  "n:block-Cursor",          -- 普通模式：方块
+  "i:hor20-rCursor",         -- 插入模式：下划线
+  "v:block-vCursor-blinkon0",-- 可视模式：方块（不闪烁）
+  "r:hor20-rCursor",         -- 替换模式：下划线
+  "c:block-cCursor",         -- 命令模式：方块
+  "sm:block-blinkwait0",     -- 匹配模式
+  "a:blinkon0"              -- 禁用所有闪烁
+}, ",")
+
 -- 用一个循环来设置基本参数
 for key, value in pairs(options) do
     vim.opt[key] = value
@@ -120,13 +131,26 @@ k.set("n", "<C-->", ":lua decrease_font_size()<CR>", { noremap = true, silent = 
 
 set_font_size(default_font_size)
 
--- 剪贴板操作
-k.set('n', '<C-a>', 'ggVG', { noremap = true, silent = true })
-k.set('n', '<C-v>', '"+p', { noremap = true, silent = true })
-k.set('v', '<C-c>', '"+y', { noremap = true, silent = true })
+-- local k = vim.keymap
+local opts = { noremap = true, silent = true }
+
+-- 剪贴板增强操作 (支持系统剪贴板)
+k.set('n', '<C-a>', 'ggVG', { noremap = true, silent = true })    -- 全选
+k.set('n', '<C-c>', '"+y', { noremap = true, silent = true })     -- 复制当前行
+k.set('n', '<C-v>', '"+p', { noremap = true, silent = true })     -- 粘贴
+k.set('n', '<C-x>', '"+dd', { noremap = true, silent = true })    -- 剪切当前行
+
+k.set('v', '<C-c>', '"+y', { noremap = true, silent = true })     -- 复制选中内容 
+k.set('v', '<C-x>', '"+d', { noremap = true, silent = true })     -- 剪切选中内容
+k.set('v', '<C-v>', '"_d"+P', { noremap = true, silent = true })  -- 替换粘贴（不会覆盖剪贴板）
+
+
 
 -- leader + f 格式化cpp代码
 vim.api.nvim_set_keymap('n', '<Leader>f', ':lua require("conform").format()<CR>', { noremap = true, silent = true })
+
+
+
 -- LSP 基础配置
 local on_attach = function(client, bufnr)
     local bufopts = { noremap = true, silent = true, buffer = bufnr }
@@ -156,9 +180,12 @@ require("lazy").setup({
     { "tanvirtin/monokai.nvim", priority = 1000  },
     { "folke/tokyonight.nvim", priority = 1000  },
     { "ellisonleao/gruvbox.nvim", priority = 1000},
+
+
     -- 基础插件
     { "windwp/nvim-autopairs", event = "InsertEnter", opts = {} },
     
+
     -- Mason
     {
         "williamboman/mason.nvim",
@@ -170,6 +197,8 @@ require("lazy").setup({
             end
         end
     },
+
+
     -- 补全系统
     {
         "hrsh7th/nvim-cmp",
@@ -253,6 +282,7 @@ require("lazy").setup({
         end
     },
     
+
     -- LSP 配置
     {
         "neovim/nvim-lspconfig",
@@ -287,6 +317,9 @@ require("lazy").setup({
             })
         end
     },
+
+
+    --文件浏览树
     {
         "nvim-tree/nvim-tree.lua",
         dependencies = { 'nvim-tree/nvim-web-devicons' },
@@ -319,7 +352,8 @@ require("lazy").setup({
         end,
     },
 
-    -- treesitter
+
+    -- treesitter语法高亮
     {
         "nvim-treesitter/nvim-treesitter",
         run = ":TSUpdate",
@@ -339,6 +373,8 @@ require("lazy").setup({
             }
         end,
     }, 
+
+
     -- 缩进线
     {
         "lukas-reineke/indent-blankline.nvim",
@@ -349,6 +385,8 @@ require("lazy").setup({
             exclude = { filetypes = { "help", "dashboard", "NvimTree", "Trouble" } }
         }
     },
+
+
     -- 自动注释
     {
         'numToStr/Comment.nvim',
@@ -363,6 +401,8 @@ require("lazy").setup({
                 })
         end,
     },
+
+
     -- neogit
     {
         "NeogitOrg/neogit",
@@ -373,11 +413,15 @@ require("lazy").setup({
         },
         config = true
     },
-    -- 其他插件
 
+
+    -- 其他插件
     { "akinsho/bufferline.nvim",config = function() require("bufferline").setup{} end },
     { "nvim-tree/nvim-web-devicons" }, -- lualine依赖
     { "nvim-lualine/lualine.nvim"},
+
+
+    -- cpp格式化
     { 'stevearc/conform.nvim',
         config = function()
             require("conform").setup({
@@ -400,10 +444,16 @@ require("lazy").setup({
             })
         end,
     },
+    
+
+    --nvim版cph
     {
         'xeluxee/competitest.nvim',
         dependencies = 'MunifTanjim/nui.nvim',
-     },
+    },
+
+
+    --markdown预览
     {
         "iamcco/markdown-preview.nvim",
         cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
@@ -413,72 +463,65 @@ require("lazy").setup({
         end,
         ft = { "markdown" },
     },
+
+
+    --美化插件
     {
         "folke/noice.nvim",
         event = "VeryLazy",
-    opts = {},
-    dependencies = {
+        opts = {},
+        dependencies = {
         "MunifTanjim/nui.nvim",
         --"rcarriga/nvim-notify",
         }
     },
+
+
+    --Dashboard
     {
         'nvimdev/dashboard-nvim',
+        dependencies = { {'nvim-tree/nvim-web-devicons'}}
         event = 'VimEnter',
         config = function()
-          require('dashboard').setup {
-            theme = 'hyper',
-    config = {
-      week_header = {
-       enable = true,
-      },
-      shortcut = {
-        { desc = '󰊳 Update', group = '@property', action = 'Lazy update', key = 'u' },
-        {
-          icon = ' ',
-          icon_hl = '@variable',
-          desc = 'Files',
-          group = 'Label',
-          action = 'Telescope find_files',
-          key = 'f',
-        },
-        -- {
-        --   desc = ' Apps',
-        --   group = 'DiagnosticHint',
-        --   action = 'Telescope app',
-        --   key = 'a',
-        -- },
-        -- -- {
-        --   desc = ' dotfiles',
-        --   group = 'Number',
-        --   action = 'Telescope dotfiles',
-        --   key = 'd',
-        -- },
-        { 
-          icon = ' ',
-          desc = 'Setting',
-          group = 'DiagnosticHint',
-          action = 'Setting',
-          key = 's',
-        },
-        { 
-          icon = ' ',
-          desc = 'Themes',
-          group = 'Number',
-          action = telescope_theme_picker,
-          key = 't',
-        },           
-      },
-    },
-          }
+            require('dashboard').setup {
+                theme = 'hyper',
+                config = {
+                week_header = {
+                     enable = true,
+                },
+                shortcut = {
+                    { desc = '󰊳 Update', group = '@property', action = 'Lazy update', key = 'u' },
+
+                    {
+                         icon = ' ',
+                         icon_hl = '@variable',
+                         desc = 'Files',
+                         group = 'Label',
+                         action = 'Telescope find_files',
+                         key = 'f',
+                    },
+
+                    { 
+                         icon = ' ',
+                         desc = 'Setting',
+                         group = 'DiagnosticHint',
+                         action = 'Setting',
+                         key = 's',
+                    },
+
+                    { 
+                         icon = ' ',
+                         desc = 'Themes',
+                         group = 'Number',
+                         action = telescope_theme_picker,
+                         key = 't',
+                    },           
+                },
+            },
+        }
         end,
-        dependencies = { {'nvim-tree/nvim-web-devicons'}}
-      },
+    },
     
-
-
-
-
 })
 
 themes = {
