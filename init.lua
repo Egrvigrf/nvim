@@ -442,26 +442,81 @@ require("lazy").setup({
           action = 'Telescope find_files',
           key = 'f',
         },
-        {
-          desc = ' Apps',
+        -- {
+        --   desc = ' Apps',
+        --   group = 'DiagnosticHint',
+        --   action = 'Telescope app',
+        --   key = 'a',
+        -- },
+        -- -- {
+        --   desc = ' dotfiles',
+        --   group = 'Number',
+        --   action = 'Telescope dotfiles',
+        --   key = 'd',
+        -- },
+        { 
+          icon = ' ',
+          desc = 'Setting',
           group = 'DiagnosticHint',
-          action = 'Telescope app',
-          key = 'a',
+          action = 'Setting',
+          key = 's',
         },
-        {
-          desc = ' dotfiles',
+        { 
+          icon = ' ',
+          desc = 'Themes',
           group = 'Number',
-          action = 'Telescope dotfiles',
-          key = 'd',
-        },
+          action = telescope_theme_picker,
+          key = 't',
+        },           
       },
     },
           }
         end,
         dependencies = { {'nvim-tree/nvim-web-devicons'}}
       },
+    
+
+
+
 
 })
+
+themes = {
+    'monokai',
+    'tokyonight-storm',
+    'gruvbox',
+    'retrobox',
+    'habamax', 
+}
+
+function telescope_theme_picker()
+  require("telescope.pickers").new({}, {
+    prompt_title = "🎨 选择主题",
+    finder = require("telescope.finders").new_table({
+      results = themes,
+      entry_maker = function(entry)
+        return {
+          value = entry,
+          display = "  " .. entry,
+          ordinal = entry,
+        }
+      end
+    }),
+    sorter = require("telescope.config").values.generic_sorter({}),
+    attach_mappings = function(prompt_bufnr)
+      local actions = require("telescope.actions")
+      actions.select_default:replace(function()
+        actions.close(prompt_bufnr)
+        local selection = require("telescope.actions.state").get_selected_entry()
+        vim.cmd("colorscheme " .. selection.value)
+        vim.notify("主题已应用: " .. selection.value, vim.log.levels.INFO)
+      end)
+      return true
+    end
+  }):find()
+end
+
+
 -- 创建一个函数来更新 theme.txt 文件
 local config_dir = vim.fn.stdpath("config")
 local function update_theme_file(theme_name)
