@@ -515,7 +515,16 @@ require("lazy").setup({
                          group = 'Number',
                          action = telescope_theme_picker,
                          key = 't',
-                    },           
+                    },
+
+                    {
+                        icon = '󰡯 ',
+                         icon_hl = '@variable',
+                         desc = 'Receive_problem',
+                         group = 'Label',
+                         action = 'CompetiTest receive problem',
+                         key = 'r',
+                    },
                 },
             },
         }
