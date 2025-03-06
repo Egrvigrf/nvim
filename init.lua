@@ -488,7 +488,8 @@ require("lazy").setup({
                 config = {
                 week_header = {
                      enable = true,
-                },
+                 },
+                 footer = { 'Happy'},
                 shortcut = {
                     { desc = '󰊳 Update', group = '@property', action = 'Lazy update', key = 'u' },
 
@@ -499,6 +500,15 @@ require("lazy").setup({
                          group = 'Label',
                          action = 'Telescope find_files',
                          key = 'f',
+                    },
+
+                    {
+                        icon = '󰡯 ',
+                         icon_hl = '@variable',
+                         desc = 'Receive_problem',
+                         group = 'Label',
+                         action = 'CompetiTest receive problem',
+                         key = 'r',
                     },
 
                     { 
@@ -517,14 +527,7 @@ require("lazy").setup({
                          key = 't',
                     },
 
-                    {
-                        icon = '󰡯 ',
-                         icon_hl = '@variable',
-                         desc = 'Receive_problem',
-                         group = 'Label',
-                         action = 'CompetiTest receive problem',
-                         key = 'r',
-                    },
+
                 },
             },
         }
