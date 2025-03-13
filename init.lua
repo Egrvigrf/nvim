@@ -275,8 +275,16 @@ require("lazy").setup({
                     { name = "buffer", config = function() require("bufferline").setup{} end },
                     { name = "path" },
                 }),
+
                 experimental = {
                     ghost_text = { hl_group = "Comment" },  -- 半透明预览文本
+                },
+
+                performance = {
+                    max_view_entries = 6    -- 总候选词最多显示6个
+                },
+                completion = {
+                     keyword_length = 3  -- 输入至少4个字符后触发补全
                 },
             })
         end
