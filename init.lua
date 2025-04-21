@@ -91,10 +91,6 @@ vim.api.nvim_create_user_command('Setting', function()
     vim.cmd('cd ' .. config_dir .. ' | e init.lua | echo "Neovim config opened"')
 end, { desc = 'Open Neovim config' })
 
--- Neogit
-k.set('n', '<C-g>', ':Neogit<CR>', { noremap = true, silent = true })
--- MarkdownPreview
-k.set('n', '<C-m>', ':MarkdownPreview<CR>', { noremap = true, silent = true })
 -- CompetitiveTest 快捷键
 k.set('n', 'ca', ':CompetiTest add_testcase<CR>', { noremap = true, silent = true })
 k.set('n', 'cr', ':CompetiTest run<CR>', { noremap = true, silent = true })
@@ -144,12 +140,8 @@ k.set('v', '<C-c>', '"+y', { noremap = true, silent = true })     -- 复制选�
 k.set('v', '<C-x>', '"+d', { noremap = true, silent = true })     -- 剪切选中内容
 k.set('v', '<C-v>', '"_d"+P', { noremap = true, silent = true })  -- 替换粘贴（不会覆盖剪贴板）
 
-
-
 -- leader + f 格式化cpp代码
 vim.api.nvim_set_keymap('n', '<Leader>f', ':lua require("conform").format()<CR>', { noremap = true, silent = true })
-
-
 
 -- LSP 基础配置
 local on_attach = function(client, bufnr)
@@ -163,42 +155,30 @@ end
 
 -- 插件管理器初始化
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
-    vim.fn.system({
-        "git",
-        "clone",
-        "--filter=blob:none",
-        "--branch=stable",
-        "https://github.com/folke/lazy.nvim.git",
-        lazypath,
-    })
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
+  local lazyrepo = "https://github.com/folke/lazy.nvim.git"
+  local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
+  if vim.v.shell_error ~= 0 then
+    vim.api.nvim_echo({
+      { "Failed to clone lazy.nvim:\n", "ErrorMsg" },
+      { out, "WarningMsg" },
+      { "\nPress any key to exit..." },
+    }, true, {})
+    vim.fn.getchar()
+    os.exit(1)
+  end
 end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
     -- 主题插件
     { "tanvirtin/monokai.nvim", priority = 1000  },
-    { "folke/tokyonight.nvim", priority = 1000  },
-    { "ellisonleao/gruvbox.nvim", priority = 1000},
-
+    -- { "folke/tokyonight.nvim", priority = 1000  },
+    -- { "ellisonleao/gruvbox.nvim", priority = 1000},
 
     -- 基础插件
     { "windwp/nvim-autopairs", event = "InsertEnter", opts = {} },
     
-
-    -- Mason
-    {
-        "williamboman/mason.nvim",
-        opts = {},
-        config = function()
-            require("mason").setup()
-                if vim.fn.executable("clang-format") == 0 then
-                    vim.cmd("MasonInstall clang-format --force")
-            end
-        end
-    },
-
-
     -- 补全系统
     {
         "hrsh7th/nvim-cmp",
@@ -323,6 +303,9 @@ require("lazy").setup({
                     "--header-insertion=never",
                 }
             })
+            if vim.fn.executable("clang-format") == 0 then
+                vim.cmd("MasonInstall clang-format --force")
+            end
         end
     },
 
@@ -410,19 +393,6 @@ require("lazy").setup({
         end,
     },
 
-
-    -- neogit
-    {
-        "NeogitOrg/neogit",
-        dependencies = {
-            "nvim-lua/plenary.nvim",
-            "sindrets/diffview.nvim",
-            "nvim-telescope/telescope.nvim",
-        },
-        config = true
-    },
-
-
     -- 其他插件
     { "akinsho/bufferline.nvim",config = function() require("bufferline").setup{} end },
     { "nvim-tree/nvim-web-devicons" }, -- lualine依赖
@@ -460,19 +430,6 @@ require("lazy").setup({
         dependencies = 'MunifTanjim/nui.nvim',
     },
 
-
-    --markdown预览
-    {
-        "iamcco/markdown-preview.nvim",
-        cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
-        build = "cd app && yarn install",
-        init = function()
-        vim.g.mkdp_filetypes = { "markdown" }
-        end,
-        ft = { "markdown" },
-    },
-
-
     --美化插件
     {
         "folke/noice.nvim",
@@ -484,144 +441,14 @@ require("lazy").setup({
         }
     },
 
-
-    --Dashboard
-    {
-        'nvimdev/dashboard-nvim',
-        dependencies = { {'nvim-tree/nvim-web-devicons'}},
-        event = 'VimEnter',
-        config = function()
-            require('dashboard').setup {
-                theme = 'hyper',
-                config = {
-                week_header = {
-                     enable = true,
-                 },
-                 footer = { 'Happy'},
-                shortcut = {
-                    { desc = '󰊳 Update', group = '@property', action = 'Lazy update', key = 'u' },
-
-                    {
-                         icon = ' ',
-                         icon_hl = '@variable',
-                         desc = 'Files',
-                         group = 'Label',
-                         action = 'Telescope find_files',
-                         key = 'f',
-                    },
-
-                    {
-                        icon = '󰡯 ',
-                         icon_hl = '@variable',
-                         desc = 'Receive_problem',
-                         group = 'Label',
-                         action = 'CompetiTest receive problem',
-                         key = 'r',
-                    },
-
-                    { 
-                         icon = ' ',
-                         desc = 'Setting',
-                         group = 'DiagnosticHint',
-                         action = 'Setting',
-                         key = 's',
-                    },
-
-                    { 
-                         icon = ' ',
-                         desc = 'Themes',
-                         group = 'Number',
-                         action = telescope_theme_picker,
-                         key = 't',
-                    },
-
-
-                },
-            },
-        }
-        end,
-    },
-    
 })
 
-themes = {
-    'monokai',
-    'tokyonight-storm',
-    'gruvbox',
-    'retrobox',
-    'habamax', 
-}
 
-function telescope_theme_picker()
-  require("telescope.pickers").new({}, {
-    prompt_title = "🎨 选择主题",
-    finder = require("telescope.finders").new_table({
-      results = themes,
-      entry_maker = function(entry)
-        return {
-          value = entry,
-          display = "  " .. entry,
-          ordinal = entry,
-        }
-      end
-    }),
-    sorter = require("telescope.config").values.generic_sorter({}),
-    attach_mappings = function(prompt_bufnr)
-      local actions = require("telescope.actions")
-      actions.select_default:replace(function()
-        actions.close(prompt_bufnr)
-        local selection = require("telescope.actions.state").get_selected_entry()
-        vim.cmd("colorscheme " .. selection.value)
-        vim.notify("主题已应用: " .. selection.value, vim.log.levels.INFO)
-      end)
-      return true
-    end
-  }):find()
-end
-
-
--- 创建一个函数来更新 theme.txt 文件
-local config_dir = vim.fn.stdpath("config")
-local function update_theme_file(theme_name)
-    local theme_file = config_dir .. "/theme.txt"
-    -- 打开文件进行写入
-    local file = io.open(theme_file, "w")
-    if file then
-        file:write(theme_name) 
-        file:close()
-    end
-end
--- 主题变化后保存
-vim.api.nvim_create_autocmd("ColorScheme", {
-    callback = function()
-        local theme_name = vim.g.colors_name
-        update_theme_file(theme_name)
-    end
-})
--- 初始化时读取 theme.txt 文件并设置主题
-local function load_theme_from_file()
-    local theme_file = config_dir .. "/theme.txt"
-    local theme_name = ""
-    local file = io.open(theme_file, "r")
-    if file then
-        theme_name = file:read("*line")  -- 读取第一行作为主题名称
-        file:close()
-    end
-    if theme_name and theme_name ~= "" then
-        vim.cmd("colorscheme " .. theme_name)
-    else
-        -- 如果没有有效主题，设置默认主题
-           vim.cmd([[colorscheme monokai]])
-        -- vim.cmd([[colorscheme tokyonight-storm]])
-        -- vim.cmd([[colorscheme retrobox]])
-        -- vim.cmd([[colorscheme habamax]])
-        -- vim.cmd([[colorscheme gruvbox]])
-    end
-end
 vim.api.nvim_create_autocmd("User", {
     pattern = "VeryLazy",
     callback = function()
-        load_theme_from_file()
+        -- load_theme_from_file()
+        vim.cmd([[colorscheme monokai]])
         require("lualine").setup({
             options = { theme = "auto" },
             --sections = { lualine_a = { "mode" }, lualine_c = { "filename" } }
@@ -646,6 +473,8 @@ vim.api.nvim_create_autocmd("User", {
         })
         require('competitest').setup({
             template_file = vim.fn.stdpath("config") .. "/template.cpp",
+            testcases_use_single_file = true,
+            testcases_directory = "./testcases",
         })
     end
 })

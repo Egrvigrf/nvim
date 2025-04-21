@@ -8,11 +8,11 @@ void solve() {
 }
 
 signed main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    int T = 1;
-    cin >> T;
-    while(T--) {
+    ios::sync_with_stdio(0);
+    cin.tie(0);
+    int tt = 1;
+    cin >> tt;
+    while(tt--) {
         solve();
     }
     return 0;
