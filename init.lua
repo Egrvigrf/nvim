@@ -6,7 +6,7 @@ local options = {
     mouse = "a",   -- 允许使用鼠标
     cmdheight = 1, -- 调整 lualine 下方 cmdline 的高度
     clipboard = "unnamedplus",
-    cursorline = true,
+    cursorline = false,
     fileencoding = "utf-8",
     hlsearch = true,
     tabstop = 4,
@@ -23,18 +23,7 @@ local options = {
     backup = false,   -- 禁用文件备份
 }
 
---nvim光标设置
-vim.opt.guicursor = table.concat({
-  "n:block-Cursor",          -- 普通模式：方块
-  "i:hor20-rCursor",         -- 插入模式：下划线
-  "v:block-vCursor-blinkon0",-- 可视模式：方块（不闪烁）
-  "r:hor20-rCursor",         -- 替换模式：下划线
-  "c:block-cCursor",         -- 命令模式：方块
-  "sm:block-blinkwait0",     -- 匹配模式
-  "a:blinkon0"              -- 禁用所有闪烁
-}, ",")
-
--- 用一个循环来设置基本参数
+-- 循环设置基本参数
 for key, value in pairs(options) do
     vim.opt[key] = value
 end
@@ -58,53 +47,61 @@ vim.g.mapleader = " "
 -- 清除搜索高亮
 k.set("n", "<leader>nh", ":nohl<CR>")
 
--- 编译并运行 C++ 文件
-function CompileAndRun()
-    vim.cmd("write")  -- 保存文件
-    local filepath = vim.fn.expand('%:p')  -- 获取当前文件的完整路径
-    local output_name = vim.fn.expand('%:t:r')  -- 获取当前文件名（不带扩展名）
+k.set('n', '<F5>', function()
+    vim.cmd('silent write')
+    
+    -- 获取纯文件名
+    local filename = vim.fn.expand('%:t')
+    local src = vim.fn.expand('%:p:S')  -- 自动处理空格路径
+    local exe = vim.fn.expand('%<:p:S')..'.exe'
 
-    if vim.fn.has("unix") == 1 then
-        vim.cmd("lcd " .. vim.fn.expand('%:p:h'))
-        local compile_cmd = string.format("g++ -std=c++20 \"%s\" -o \"%s\"", filepath, output_name)
-        local run_cmd = string.format("./%s", output_name:match("([^/]+)$"))
-        if vim.fn.system(compile_cmd) == "" then
-            vim.cmd(string.format("vsplit | term bash -c \"%s\"", run_cmd))
-        end
-    elseif vim.fn.has("win32") == 1 then
-        vim.cmd(string.format(
-            "vsplit | term g++ \"%s\" -o \"%s\" && \"%s\"",
-            filepath, output_name, output_name
-        ))
-    end
-    vim.cmd("startinsert")  -- 打开终端后自动进入插入模式
-end
+    -- 原始批处理脚本保持不变
+    local batch_cmd = string.format([[
+@echo off
+chcp 65001 > nul
+echo [Compile] "%s"
+g++ -O2 "%s" -o "%s"
+if %%ERRORLEVEL%% neq 0 (
+    echo [Compile Error] && pause && exit
+)
+echo [Running]
+"%s"
+echo.
+echo exit code: %%ERRORLEVEL%%
+pause
+]], src, src, exe, exe)
 
-k.set('n', '<F5>', ':lua CompileAndRun()<CR>', { noremap = true, silent = true })
+    -- 生成批处理文件
+    local batch_file = os.tmpname()..'.bat'
+    local fd = io.open(batch_file, 'w')
+    fd:write(batch_cmd)
+    fd:close()
 
--- 切换 NvimTree 文件管理窗口
-k.set('n', '<Leader>e', ':NvimTreeToggle<CR>', { noremap = true, silent = true })
+    -- 转换路径格式并确保双引号包裹
+    local win_path = batch_file:gsub('/', '\\')
+    vim.fn.system(string.format(
+        'start "%s" /WAIT cmd /c ""%s""',
+        filename,
+        win_path
+    ))
+
+    vim.defer_fn(function()
+        os.remove(batch_file)
+    end, 3000)
+end, { noremap = true, silent = true })
+
 
 -- 自定义命令跳转到设置
 vim.api.nvim_create_user_command('Setting', function()
     local config_dir = vim.fn.stdpath('config')
-    vim.cmd('cd ' .. config_dir .. ' | e init.lua | echo "Neovim config opened"')
+    vim.cmd('cd ' .. config_dir .. ' | e init.lua')
 end, { desc = 'Open Neovim config' })
-
--- CompetitiveTest 快捷键
-k.set('n', 'ca', ':CompetiTest add_testcase<CR>', { noremap = true, silent = true })
-k.set('n', 'cr', ':CompetiTest run<CR>', { noremap = true, silent = true })
-k.set('n', 'ce', ':CompetiTest edit_testcase<CR>', { noremap = true, silent = true })
-k.set('n', 'ct', ':CompetiTest receive testcases<CR>', { noremap = true, silent = true })
-k.set('n', 'cp', ':CompetiTest receive problem<CR>', { noremap = true, silent = true })
-k.set('n', 'cc', ':CompetiTest receive contest<CR>', { noremap = true, silent = true })
-k.set('n', 'cs', ':CompetiTest show_ui<CR>', { noremap = true, silent = true })
 
 -- 设置快捷键格式化代码
 vim.api.nvim_set_keymap('n', '<Leader>f', ':lua require("conform").format()<CR>', { noremap = true, silent = true })
 
 -- 字体大小调整
-local default_font_size = 12
+local default_font_size = 14
 local current_font_size = default_font_size
 
 local function set_font_size(size)
@@ -140,8 +137,6 @@ k.set('v', '<C-c>', '"+y', { noremap = true, silent = true })     -- 复制选�
 k.set('v', '<C-x>', '"+d', { noremap = true, silent = true })     -- 剪切选中内容
 k.set('v', '<C-v>', '"_d"+P', { noremap = true, silent = true })  -- 替换粘贴（不会覆盖剪贴板）
 
--- leader + f 格式化cpp代码
-vim.api.nvim_set_keymap('n', '<Leader>f', ':lua require("conform").format()<CR>', { noremap = true, silent = true })
 
 -- LSP 基础配置
 local on_attach = function(client, bufnr)
@@ -176,7 +171,7 @@ require("lazy").setup({
     -- { "folke/tokyonight.nvim", priority = 1000  },
     -- { "ellisonleao/gruvbox.nvim", priority = 1000},
 
-    -- 基础插件
+    -- 括号补全
     { "windwp/nvim-autopairs", event = "InsertEnter", opts = {} },
     
     -- 补全系统
@@ -192,7 +187,6 @@ require("lazy").setup({
         },
         config = function()
             local cmp = require("cmp")
-            -- local luasnip = require("luasnip")
             local lspkind = require("lspkind")
             cmp.setup({
                 window = {
@@ -227,44 +221,19 @@ require("lazy").setup({
                         end
                     end, { "i", "s" }),
                 }),
+
                 sources = cmp.config.sources(
                 {
-                    {
-                    name = "nvim_lsp",
-                    entry_filter = function(entry)
-                    local item = entry:get_completion_item()
-                        if not item.kind then return true end
-
-                        -- 禁用的补全类型列表
-                        local disabled_kinds = {
-                        --    vim.lsp.protocol.CompletionItemKind.Interface,
-                            vim.lsp.protocol.CompletionItemKind.EnumMember,
-                        --    vim.lsp.protocol.CompletionItemKind.Snippet,
-                        }
-
-                        -- 循环检查补全项的 kind 是否在禁用列表中
-                        for _, kind in ipairs(disabled_kinds) do
-                            if item.kind == kind then
-                                return false  -- 如果是禁用类型，直接排除
-                            end
-                        end
-
-                        return true  -- 其他类型允许继续
-                    end
-                },
+                    { name = "nvim_lsp"},
                     { name = "buffer", config = function() require("bufferline").setup{} end },
                     { name = "path" },
                 }),
-
-                experimental = {
-                    ghost_text = { hl_group = "Comment" },  -- 半透明预览文本
-                },
 
                 performance = {
                     max_view_entries = 6    -- 总候选词最多显示6个
                 },
                 completion = {
-                     keyword_length = 3  -- 输入至少4个字符后触发补全
+                     keyword_length = 2  -- 输入至少3个字符后触发补全
                 },
             })
         end
@@ -285,13 +254,6 @@ require("lazy").setup({
                 ensure_installed = { "clangd" },
             })
             
-            -- 诊断图标
-            local signs = { Error = "", Warn = "", Info = "", Hint = "" }
-            for type, icon in pairs(signs) do
-                local hl = "DiagnosticSign" .. type
-                vim.fn.sign_define(hl, { text = icon, texthl = hl })
-            end
-
             -- Clangd 配置
             require("lspconfig").clangd.setup({
                 capabilities = require("cmp_nvim_lsp").default_capabilities(),
@@ -303,82 +265,20 @@ require("lazy").setup({
                     "--header-insertion=never",
                 }
             })
-            if vim.fn.executable("clang-format") == 0 then
-                vim.cmd("MasonInstall clang-format --force")
-            end
+            -- if vim.fn.executable("clang-format") == 0 then
+            --     vim.cmd("MasonInstall clang-format --force")
+            -- end
         end
     },
-
-
-    --文件浏览树
-    {
-        "nvim-tree/nvim-tree.lua",
-        dependencies = { 'nvim-tree/nvim-web-devicons' },
-            config = function()
-                require('nvim-tree').setup({
-                update_focused_file = {
-                    enable = true,
-                    update_cwd = true,
-                },
-                sync_root_with_cwd = true,
-                respect_buf_cwd = true,
-                view = {
-                    width = 30,
-                    side = 'left',
-                },
-                actions = {
-                open_file = {
-                    quit_on_open = true,
-                },
-                change_dir = {
-                    enable = true,
-                    global = true,
-                },
-                },
-                hijack_directories = {
-                    enable = true,
-                    auto_open = true,
-                },
-            })
-        end,
-    },
-
-
-    -- treesitter语法高亮
-    {
-        "nvim-treesitter/nvim-treesitter",
-        run = ":TSUpdate",
-        config = function()
-            require('nvim-treesitter.configs').setup {
-                ensure_installed = { "cpp" },
-                highlight = {
-                    enable = true,
-                    additional_vim_regex_highlighting = { "cpp" },
-                },
-                indent = { enable = true },
-                rainbow = {
-                    enable = true,
-                    extended_mode = true,
-                    max_file_lines = nil,
-                },
-            }
-        end,
-    }, 
-
-
+    
     -- 缩进线
     {
         "lukas-reineke/indent-blankline.nvim",
         main = "ibl",
-        opts = {
-            indent = { char = "▏", tab_char = "▏" },
-            scope = { show_start = false, show_end = false },
-            exclude = { filetypes = { "help", "dashboard", "NvimTree", "Trouble" } }
-        }
+        opts = {},
     },
 
-
-    -- 自动注释
+    -- 自动注释 快捷gcc gc
     {
         'numToStr/Comment.nvim',
         config = function()
@@ -393,11 +293,10 @@ require("lazy").setup({
         end,
     },
 
-    -- 其他插件
-    { "akinsho/bufferline.nvim",config = function() require("bufferline").setup{} end },
-    { "nvim-tree/nvim-web-devicons" }, -- lualine依赖
-    { "nvim-lualine/lualine.nvim"},
-
+    -- 标签栏
+    { "akinsho/bufferline.nvim"},
+    
+    -- 用自带的 :Ex 可以代替nerdtree 进入后v 分屏
 
     -- cpp格式化
     { 'stevearc/conform.nvim',
@@ -422,60 +321,15 @@ require("lazy").setup({
             })
         end,
     },
-    
-
-    --nvim版cph
-    {
-        'xeluxee/competitest.nvim',
-        dependencies = 'MunifTanjim/nui.nvim',
-    },
-
-    --美化插件
-    {
-        "folke/noice.nvim",
-        event = "VeryLazy",
-        opts = {},
-        dependencies = {
-        "MunifTanjim/nui.nvim",
-        --"rcarriga/nvim-notify",
-        }
-    },
-
 })
 
 
 vim.api.nvim_create_autocmd("User", {
     pattern = "VeryLazy",
     callback = function()
-        -- load_theme_from_file()
         vim.cmd([[colorscheme monokai]])
-        require("lualine").setup({
-            options = { theme = "auto" },
-            --sections = { lualine_a = { "mode" }, lualine_c = { "filename" } }
-        })
-        require("noice").setup({
-            lsp = {
-                -- override markdown rendering so that **cmp** and other plugins use **Treesitter**
-                override = {
-                ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
-                ["vim.lsp.util.stylize_markdown"] = true,
-                 ["cmp.entry.get_documentation"] = true, -- requires hrsh7th/nvim-cmp
-                },
-            },
-            -- you can enable a preset for easier configuration
-            presets = {
-                bottom_search = true, -- use a classic bottom cmdline for search
-                command_palette = true, -- position the cmdline and popupmenu together
-                long_message_to_split = true, -- long messages will be sent to a split
-                inc_rename = false, -- enables an input dialog for inc-rename.nvim
-                lsp_doc_border = false, -- add a border to hover docs and signature help
-            },
-        })
-        require('competitest').setup({
-            template_file = vim.fn.stdpath("config") .. "/template.cpp",
-            testcases_use_single_file = true,
-            testcases_directory = "./testcases",
-        })
+        require("ibl").setup() -- 启用缩进线
+        require("bufferline").setup{} -- 启用上方标签栏 
     end
 })
 
