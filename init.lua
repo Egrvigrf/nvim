@@ -223,7 +223,7 @@ require("lazy").setup({
     vim.keymap.set("n", "gl", vim.diagnostic.open_float, { desc = "Show diagnostics" })
 
       -- Clangd 增强配置
-      require("lspconfig").clangd.setup({
+      vim.lsp.config("clangd", {
         cmd = {
           "clangd",
           "--background-index",
@@ -233,6 +233,7 @@ require("lazy").setup({
           "--all-scopes-completion"       -- 全作用域补全
         }
       })
+      vim.lsp.enable("clangd")
     end
   },
 
